@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# An example hook script to verify what is about to be committed.
+# Called by "git commit" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message if
+# it wants to stop the commit.
+#
+# To enable this hook, rename this file to "pre-commit".
+
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+    against=HEAD
+else
+    # Initial commit: diff against an empty tree object
+    against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+fi
+
+# Redirect output to stderr.
+exec 1>&2
+
+sum1=`git diff-index --numstat $against | cut -f 1 | awk '{ SUM += $1} END { print SUM }'`
+sum2=`git diff-index --numstat $against | cut -f 2 | awk '{ SUM += $1} END { print SUM }'`
+sum=$(($sum1+$sum2))
+
+# Prevent commits with more than a one characte difference
+if [ sum > 1 ]
+then
+    cat <<\EOF
+
+ERROR: More than one character in the file has been changed! You 
+       can only commit one character at a time to the repo.
+    
+You can check how much you have changed with 'git diff --numstat'
+
+Please fix this issue before committing.
+
+EOF
+    exit 1
+fi
