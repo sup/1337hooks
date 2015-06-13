@@ -18,22 +18,23 @@ fi
 # Redirect output to stderr.
 exec 1>&2
 
+# Get sum on character differences
 sum1=`git diff-index --numstat $against | cut -f 1 | awk '{ SUM += $1} END { print SUM }'`
 sum2=`git diff-index --numstat $against | cut -f 2 | awk '{ SUM += $1} END { print SUM }'`
 sum=$(($sum1+$sum2))
 
-# Prevent commits with more than a one characte difference
+# Prevent commits with more than a one character difference
 if [ sum > 1 ]
 then
     cat <<\EOF
-
+==================================================================
 ERROR: More than one character in the file has been changed! You 
        can only commit one character at a time to the repo.
     
 You can check how much you have changed with 'git diff --numstat'
 
 Please fix this issue before committing.
-
+==================================================================
 EOF
     exit 1
 fi
